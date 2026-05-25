@@ -5,6 +5,17 @@ from flatland.envs.RailEnvPolicy import RailEnvPolicy
 from flatland.envs.rail_env_action import RailEnvActions
 
 
+
+def _action_value(x):
+    try:
+        return int(x.value)
+    except Exception:
+        try:
+            return int(x)
+        except Exception:
+            return int(RailEnvActions.DO_NOTHING.value)
+
+
 def _to_action(x):
     try:
         return RailEnvActions(x)
@@ -313,7 +324,7 @@ class MyPolicy(RailEnvPolicy):
 
             if best is None:
                 actions[int(h)] = self._safe_wait_action(info)
-                self.last_action[int(h)] = int(actions[int(h)])
+                self.last_action[int(h)] = _action_value(actions[int(h)])
                 continue
 
             self._reserve_candidate(
@@ -324,9 +335,9 @@ class MyPolicy(RailEnvPolicy):
                 planned_leave=planned_leave,
             )
 
-            action = _to_action(best.get("action", int(RailEnvActions.MOVE_FORWARD)))
+            action = _to_action(best.get("action", RailEnvActions.MOVE_FORWARD.value))
             actions[int(h)] = action
-            self.last_action[int(h)] = int(action)
+            self.last_action[int(h)] = _action_value(action)
 
         return actions
 
@@ -336,5 +347,5 @@ class MyPolicy(RailEnvPolicy):
             info = observation.get("self", {})
             candidates = info.get("candidates", [])
             if candidates:
-                return _to_action(candidates[0].get("action", int(RailEnvActions.MOVE_FORWARD)))
+                return _to_action(candidates[0].get("action", RailEnvActions.MOVE_FORWARD.value))
         return RailEnvActions.DO_NOTHING
