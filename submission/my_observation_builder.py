@@ -76,17 +76,17 @@ def _planning_position(agent):
 
 def _relative_action(current_direction, new_direction):
     if current_direction is None or new_direction is None:
-        return int(RailEnvActions.DO_NOTHING)
+        return RailEnvActions.DO_NOTHING.value
     cd = int(current_direction)
     nd = int(new_direction)
     diff = (nd - cd) % 4
     if diff == 0:
-        return int(RailEnvActions.MOVE_FORWARD)
+        return RailEnvActions.MOVE_FORWARD.value
     if diff == 1:
-        return int(RailEnvActions.MOVE_RIGHT)
+        return RailEnvActions.MOVE_RIGHT.value
     if diff == 3:
-        return int(RailEnvActions.MOVE_LEFT)
-    return int(RailEnvActions.STOP_MOVING)
+        return RailEnvActions.MOVE_LEFT.value
+    return RailEnvActions.STOP_MOVING.value
 
 
 class MyObservationBuilder(ObservationBuilder):
@@ -228,7 +228,7 @@ class MyObservationBuilder(ObservationBuilder):
                 continue
 
             action = _relative_action(int(direction), int(nd))
-            if action == int(RailEnvActions.STOP_MOVING):
+            if action == RailEnvActions.STOP_MOVING.value:
                 continue
 
             d1 = self._distance(handle, next_pos, nd, target)
