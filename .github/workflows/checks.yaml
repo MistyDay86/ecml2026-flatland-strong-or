@@ -1,0 +1,69 @@
+name: Checks
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches: [ "main" ]
+  schedule:
+    - cron: '30 5 * * *'
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # DEPENDENCY SWITCH:
+  flatland-rl-ref: v4.2.5
+
+jobs:
+  test:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Inspect disk
+        run: |
+          df -h
+          docker system df
+      # https://stackoverflow.com/questions/30604846/docker-complains-about-no-space-left-on-device-how-to-clean-up
+      - name: Prune docker system
+        run: |
+          docker system prune --all --force
+      # https://www.dzombak.com/blog/2024/09/freeing-disk-space-on-github-actions-runners/
+      - name: Free disk space
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/kou/arrow/e49d8ae15583ceff03237571569099a6ad62be32/ci/scripts/util_free_space.sh | bash
+      - name: Inspect disk again
+        run: |
+          df -h
+          docker system df
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.12
+      - name: Install flatland-rl cli
+        run: |
+          pip install git+https://github.com/flatland-association/flatland-rl.git@${{ env.flatland-rl-ref }}
+
+      - name: Build my solution
+        run: |
+          set -euxo pipefail
+          
+          docker build  -t submission/mysolution -f Dockerfile .
+
+      - name: Run single scenario with my policy
+        run: |
+          set -euxo pipefail
+          
+          sudo rm -fR outputs
+          mkdir outputs
+          chmod a+rwx outputs
+          
+          docker run -v ./outputs/:/tmp submission/mysolution flatland-trajectory-generate-from-policy  --data-dir /tmp --callbacks-pkg flatland.callbacks.generate_movie_callbacks --callbacks-cls GenerateMovieCallbacks --rewards flatland.envs.rewards.ECML2026Rewards
+          
+          find outputs
+          
+          flatland-trajectory-analysis --root-data-dir outputs --output-dir analysis
+          
+          find analysis
+
+
