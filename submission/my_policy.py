@@ -9,20 +9,12 @@ class MyPolicy(DeadLockAvoidancePolicy):
             count_num_opp_agents_towards_min_free_cell=True,
             use_switches_heuristic=True,
 
-            # Miglioria rispetto alla configurazione base:
-            # evita che due treni entrino simultaneamente in conflitto già dalla partenza.
-            use_entering_prevention=True,
-
-            # Prova alternative quando ci sono fermate/intermediate e un treno resta bloccato.
-            # Valore piccolo: non esplode il costo computazionale.
-            use_alternative_at_first_intermediate_and_then_always_first_strategy=3,
-
-            # Se un agente è bloccato per troppi step, prova a saltare il prossimo waypoint flessibile.
-            # Utile negli scenari con intermediate stops/disruption.
-            drop_next_threshold=12,
-
-            # Limite ragionevole per evitare path search troppo lunga.
-            k_shortest_path_cutoff=3000,
+            # v5 FAST:
+            # disattiviamo tutte le parti costose che hanno mandato v4 in timeout.
+            use_entering_prevention=False,
+            use_alternative_at_first_intermediate_and_then_always_first_strategy=None,
+            drop_next_threshold=None,
+            k_shortest_path_cutoff=None,
 
             seed=42,
             verbose=False,
